@@ -26,6 +26,8 @@ if __name__ == '__main__':
     pitcherMap = {}
     idMap = {}
 
+    # generate data structure to store all player statistics
+    # contains player statistics mapped by (playerID_yearID)
     def generatePlayerMap(filename, map):
         with open(filename) as csvfile:
             reader = csv.DictReader(csvfile)
@@ -33,12 +35,14 @@ if __name__ == '__main__':
                 id_year_key = str(row['playerID']) + "_" + str(row['yearID'])
                 map[id_year_key] = row
 
+    # generate data structure to store all batter statistics between 2010 and 2014
+    # contains player statistics mapped by (playerID)
+    # sums all of the relevant statistics --> we average the numbers later
     newBatterMap = {}
     def generateBatterMap(filename, map):
         with open(filename) as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-
                 if int(row['yearID']) < 2010 or int(row['yearID']) > 2014:
                     # pid = str(row['playerID'])
                     continue
@@ -68,6 +72,9 @@ if __name__ == '__main__':
     # - hits: H
 
 
+    # generate data structure to store all pitcher statistics between 2010 and 2014
+    # contains player statistics mapped by (playerID)
+    # sums all of the relevant statistics --> we average the numbers later
     newPitcherMap = {}
     def generatePitcherMap(filename, map):
         with open(filename) as csvfile:
@@ -105,17 +112,11 @@ if __name__ == '__main__':
             newMap['H'] = float(map[pid]['H'])/years
             newMap['RBI'] = float(map[pid]['RBI'])/years
             newMap['SB'] = float(map[pid]['SB'])/years
-            # for key, val in map[playerID]:
-            #     print map[playerID]
-            #     print key
-            #     newMap[key] = float(val)/years
             avg_hitter_map[pid] = newMap
-        # for key, val in avg_hitter_map.iteritems():
-        #     print key, val
-        # for pid, stats in avg_hitter_map.iteritems():
-        #     print pid, stats
         print "Nelson Cruz", avg_hitter_map['cruzne02']
 
+    # function averages values from 2010 to 2014 for hitters from an
+    # associated map with values containing aggregated data on those years
     avg_pitcher_map = {}
     def averagePitchingValues_baseline(map):
         for pid, stats in map.iteritems():
@@ -128,19 +129,14 @@ if __name__ == '__main__':
             newMap['H'] = float(map[pid]['H'])/years
             newMap['L'] = float(map[pid]['L'])/years
             newMap['IPouts'] = float(map[pid]['IPouts'])/years
-            # for key, val in map[playerID]:
-            #     print map[playerID]
-            #     print key
-            #     newMap[key] = float(val)/years
             avg_pitcher_map[pid] = newMap
-        # for key, val in avg_pitcher_map.iteritems():
-        #     print key, val
         print "Clayton Kershaw", avg_pitcher_map['kershcl01']
 
 
     def checkAccuracyPitching():
         pass
 
+    # checks the accuracy of our hitting numbers for the baseline
     hittingAccuracy = {}
     def checkAccuracyHitting():
         for pid, stats in avg_hitter_map.iteritems():
@@ -149,15 +145,12 @@ if __name__ == '__main__':
             if batterMap.get(key2015, 0) == 0:
                 continue
             for key, val in avg_hitter_map[pid].iteritems():
-                # print key, val
                 comparisonVal = float(batterMap[key2015][key])
                 if comparisonVal == 0:
                     comparisonVal = 1
                 accuracy = abs(float(val - comparisonVal)/comparisonVal)
                 accuracyVec[key] = accuracy
             hittingAccuracy[pid] = accuracyVec
-        # for key, val in hittingAccuracy.iteritems():
-        #     print key, val
         print newBatterMap['troutmi01']
 
         print "Trout prediction 2015", avg_hitter_map['troutmi01']
@@ -180,12 +173,12 @@ if __name__ == '__main__':
                 # totalABs += float(batterMap[key_2015]['AB'])
 
         for keyAcc, valAcc in totalAverages.iteritems():
-            # print totalAverages[keyAcc]
             totalAverages[keyAcc] = float(valAcc) / len(hittingAccuracy) #/ totalABs
 
         print totalAverages
 
 
+    # generates the tables of ocrresponding ID values for each player
     def generateIDTable(map = idMap):
         with open(masterFile) as csvfile:
             reader = csv.DictReader(csvfile)
