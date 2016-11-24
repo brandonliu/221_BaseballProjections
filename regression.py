@@ -1,9 +1,12 @@
 import csv
 import sys
 import math
+<<<<<<< HEAD
 import numpy as np
 from sklearn import linear_model
 import matplotlib.pyplot as plt
+=======
+>>>>>>> 992e0210ab779c7b2a88f18901b6a697be15074a
 
 
 if __name__ == '__main__':
@@ -29,6 +32,7 @@ if __name__ == '__main__':
     pitcherMap = {}
     idMap = {}
 
+<<<<<<< HEAD
     # BEGIN BRYAN IMPLEMENTATION
 
     troutMap = {}
@@ -87,6 +91,8 @@ if __name__ == '__main__':
 
     # END BRYAN IMPLEMENTATION
 
+=======
+>>>>>>> 992e0210ab779c7b2a88f18901b6a697be15074a
     # generate data structure to store all player statistics
     # contains player statistics mapped by (playerID_yearID)
     def generatePlayerMap(filename, map):
@@ -247,6 +253,7 @@ if __name__ == '__main__':
                 map[str(row['playerID'])] = row
 
 
+<<<<<<< HEAD
     # generatePlayerMap(battingFile, batterMap)
     # generatePlayerMap(pitchingFile, pitcherMap)
     # generateIDTable()
@@ -257,6 +264,18 @@ if __name__ == '__main__':
     # averageBattingValues_baseline(newBatterMap)
     # averagePitchingValues_baseline(newPitcherMap)
     # checkAccuracyHitting()
+=======
+    generatePlayerMap(battingFile, batterMap)
+    generatePlayerMap(pitchingFile, pitcherMap)
+    generateIDTable()
+
+    # create averaged values to compare with
+    generateBatterMap(battingFile, newBatterMap)
+    generatePitcherMap(pitchingFile, newPitcherMap)
+    averageBattingValues_baseline(newBatterMap)
+    averagePitchingValues_baseline(newPitcherMap)
+    checkAccuracyHitting()
+>>>>>>> 992e0210ab779c7b2a88f18901b6a697be15074a
 
 
 
@@ -318,4 +337,8 @@ if __name__ == '__main__':
 
 
 
+<<<<<<< HEAD
     
+=======
+    
+>>>>>>> 992e0210ab779c7b2a88f18901b6a697be15074a
