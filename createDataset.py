@@ -23,8 +23,8 @@ if __name__ == '__main__':
     battingFile = 'lahman_csv_2015/core/Batting.csv'
     masterFile = 'lahman_csv_2015/core/Master.csv'
     pitchingFile = 'lahman_csv_2015/core/Pitching.csv'
-    bat_2016File = 'ESPN_batters_2016.csv'
-    pitch_2016File = 'ESPN_pitchers_2016.csv'
+    bat_2016File = 'bbref_batters_2016.csv'
+    pitch_2016File = 'bbref_pitchers_2016.csv'
     batter_2015_pitchfxFile = 'battersfx2015.csv'
     pitcher_2015_pitchfxFile = 'pitchersfx2015.csv'
 
@@ -57,6 +57,11 @@ if __name__ == '__main__':
             reader = csv.DictReader(csvfile)
             for row in reader:
                 id_year_key = str(row['playerID']) + "_" + str(row['yearID'])
+                # Delete these values for regression purposes
+                del row['playerID']
+                del row['yearID']
+                del row['teamID']
+                del row['lgID']
                 map[id_year_key] = row
 
     # generate data structure to store all batter statistics between 2010 and 2014
@@ -131,22 +136,28 @@ if __name__ == '__main__':
                 pid = str(row['playerID'])
                 map[pid] = row
                 playerName = row['nameFirst'] + " " + row['nameLast']
+                # if playerName == 'J. D. Martinez' or row['nameGiven'] == 'Julio Daniel':
+                #     playerName = 'J.D. Martinez'
                 if playerName not in idNamePairs:
                     idNamePairs[playerName] = [(pid, row['debut'])]
                 else:
                     idNamePairs[playerName].append((pid, row['debut']))
 
     
-    # ii. Data source: espn_2016
+    # ii. Data source: bbref_2016
     def generate2016Data(filename2016, newMap):
         with open(filename2016) as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                # print row
                 name = row['Name']
+                if name[len(name) -1] == '*':
+                    name = name[:len(name)-1]
                 if name in newMap:
                     if row['Tm'] != 'TOT':
                         continue
+                del row['Name']
+                del row['Tm']
+                del row['Lg']
                 newMap[name] = row
 
 
@@ -157,15 +168,16 @@ if __name__ == '__main__':
             reader = csv.DictReader(csvfile)
             for row in reader:
                 name = row['Name']
+                del row['Name']
+                del row['Team']
                 newMap[name] = row
 
 
-    print "Generate data frame from ESPN 2016 data...."
-    espn_2016_batters = {}
-    espn_2016_pitchers = {}
-    generate2016Data(bat_2016File, espn_2016_batters)
-    generate2016Data(pitch_2016File, espn_2016_pitchers)
-    # print espn_2016_pitchers
+    print "Generate data frame from bbref 2016 data...."
+    bbref_2016_batters = {}
+    bbref_2016_pitchers = {}
+    generate2016Data(bat_2016File, bbref_2016_batters)
+    generate2016Data(pitch_2016File, bbref_2016_pitchers)
 
     print "...."
     print "Generating data frame from Lahman batter dataset"
@@ -192,7 +204,6 @@ if __name__ == '__main__':
     dupPlayers = []
     for key, val in newBatterMap.iteritems():
         pName = idMap[key]['nameFirst'] + " " + idMap[key]['nameLast']
-        # print val, idMap[key]
         if pName not in batter_2015_pitchfx:
             continue
         if pName in playerNames:
@@ -206,7 +217,6 @@ if __name__ == '__main__':
         if pName in playerNames:
             dupPlayers.append(pName)
         playerNames.add(pName)
-    print dupPlayers
 
 
     # Create the methods to access player data when given a player name
@@ -217,41 +227,65 @@ if __name__ == '__main__':
     def getPlayerInformation(playerName):
         # Get 2016 information
         info2016 = None
-        batter = True
         playerCurrent = False
-        if playerName in espn_2016_batters:
-            info2016 = espn_2016_batters[playerName]
+        batter = False
+        if playerName in bbref_2016_pitchers:
+            info2016 = bbref_2016_pitchers[playerName]
             playerCurrent = True
-        elif playerName in espn_2016_pitchers:
-            batter = False
-            info2016 = espn_2016_pitchers[playerName]
+        elif playerName in bbref_2016_batters:
+            batter = True
+            info2016 = bbref_2016_batters[playerName]
             playerCurrent = True
-        if not playerCurrent:
-            print "Player no longer active."
-            return None
-        playerPitchFxData = None
-        if batter:
-            playerPitchFxData = batter_2015_pitchfx[playerName]
-        else:
-            playerPitchFxData = pitcher_2015_pitchfx[playerName]
-        player_2010to2015 = {}
-        playerIDInfo = idNamePairs[playerName][0] # Just takes the first player it finds
-        pid = playerIDInfo[0]
-        if batter:
-            for i in range(2010, 2015 + 1):
-                keyID = str(pid) + "_" + str(i)
-                print keyID
-                # print batterMap
-                if keyID in batterMap:
-                    player_2010to2015[str(i)] = batterMap[keyID]
-        else: # pitcher
-            for i in range(2010, 2015 + 1):
-                keyID = str(pid) + "_" + str(i)
-                if keyID in batterMap:
-                    player_2010to2015[str(i)] = pitcherMap[keyID]
-
-        return info2016, playerPitchFxData, player_2010to2015
         
+        if not playerCurrent:
+            print "Player %s no longer active." % playerName
+            return None, None, None
+        playerPitchFxData = None
+        if playerName in pitcher_2015_pitchfx and not batter:
+            playerPitchFxData = pitcher_2015_pitchfx[playerName]
+        elif playerName in batter_2015_pitchfx and batter:
+            playerPitchFxData = batter_2015_pitchfx[playerName]
+        player_2010to2015 = None
+        if playerName in idNamePairs:
+            playerIDInfo = idNamePairs[playerName][0] # Just takes the first player it finds
+            pid = playerIDInfo[0]
+            player_2010to2015 = {}
+            if not batter:
+                # If we don't find data for that year, we just replace it with duplicate data from another year
+                tempData = {}
+                yearsMissing = []
+                for year in range(2010, 2015 + 1):
+                    keyID = str(pid) + "_" + str(year)
+                    if keyID in batterMap:
+                        player_2010to2015[str(year)] = pitcherMap[keyID]
+                        tempData = pitcherMap[keyID]
+                    else:
+                        yearsMissing.append(year)
+                for yr in yearsMissing:
+                    player_2010to2015[yr] = tempData
+            else: # batter
+                tempData = {}
+                yearsMissing = []
+                for year in range(2010, 2015 + 1):
+                    keyID = str(pid) + "_" + str(year)
+                    if keyID in batterMap:
+                        player_2010to2015[str(year)] = batterMap[keyID]
+                        tempData = batterMap[keyID]
+                    else:
+                        yearsMissing.append(year)
+                for yr in yearsMissing:
+                    player_2010to2015[str(yr)] = tempData
+            newList = []
+            print player_2010to2015
+            for i, (d, vals) in enumerate(player_2010to2015.iteritems()):
+                if i == 0:
+                    newList = map(lambda x: float(x) if x != '' else 0, list(vals.values()))
+                else:
+                    newList = map(lambda x: float(x) if x != '' else 0, list(vals.values())) + newList
+                print newList
+                player_2010to2015 = newList
+        return info2016, playerPitchFxData, player_2010to2015
+    
     trout2016, troutPitchFX2015, trout2010to2015 = getPlayerInformation("Mike Trout")
     print trout2016
     print '\n\n'
@@ -259,3 +293,44 @@ if __name__ == '__main__':
     print '\n\n'
     print trout2010to2015
     print '\n\n'
+
+    # Create the X dataset for linear regression
+    pitcherX = []
+    pitcherY = []
+    batterX = []
+    batterY = []
+    def createTrainSet():
+        for player, val in batter_2015_pitchfx.iteritems():
+            player2016, playerFX2015, player2010to2015 = getPlayerInformation(player)
+            if player2016 and playerFX2015 and player2010to2015: # ignore values not present in all categories
+                player2016 = map(lambda x: float(x) if x != '' else 0, list(player2016.values()))
+                batterY.append(player2016)
+                playerFX2015 = map(lambda x: float(x) if x != '' else 0, list(playerFX2015.values()))
+                batterX.append(player2010to2015 + playerFX2015)
+        for player, val in pitcher_2015_pitchfx.iteritems(): # ignore values not present in all categories
+            player2016, playerFX2015, player2010to2015 = getPlayerInformation(player)
+            if player2016 and playerFX2015 and player2010to2015:
+                player2016 = map(lambda x: float(x) if x != '' else 0, list(player2016.values()))
+                pitcherY.append(player2016)
+                playerFX2015 = map(lambda x: float(x) if x != '' else 0, list(playerFX2015.values()))
+                pitcherX.append(player2010to2015 + playerFX2015)
+        # print pitcherX
+    # To run linear regression / create a neural net, we need to:
+    # Separately for pitchers and hitters
+    # 1. join the different data sets into a smaller sample set
+        # Y response variable will be bbref2016 data
+        # X will be PitchFX data and 2010 to 2015 data
+
+    # When a user inputs a name of a player, we generate our X
+    # from our 2010-2015 data set and if we don't have pitchfx data,
+    # we scrape their 2015 pitch fx data from fangraphs
+
+    createTrainSet()
+    regr = linear_model.LinearRegression()
+    regr.fit(batterX, batterY)
+    print regr.coef_
+    #     regr.predict(years)
+    #     coeffs = regr.coef_
+    #     intercept = regr.intercept_
+    #     result = intercept
+    #     lastYearData = years[-1]
