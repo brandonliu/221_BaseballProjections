@@ -1,12 +1,10 @@
 import csv
 import sys
 import math
-<<<<<<< HEAD
 import numpy as np
 from sklearn import linear_model
 import matplotlib.pyplot as plt
-=======
->>>>>>> 992e0210ab779c7b2a88f18901b6a697be15074a
+import sys
 
 
 if __name__ == '__main__':
@@ -32,67 +30,72 @@ if __name__ == '__main__':
     pitcherMap = {}
     idMap = {}
 
-<<<<<<< HEAD
     # BEGIN BRYAN IMPLEMENTATION
 
-    troutMap = {}
-
-    with open(battingFile) as csvfile:
-        reader = csv.DictReader(csvfile)
-        years = []
-        hrs = []
-        for row in reader:
-            if row['playerID'] == "troutmi01":
-                # troutMap[row["yearID"]] = row["HR"]
-                # years.append([row["yearID"], row["yearID"]])
-                # hrs.append([row["HR"], row["H"]])
-
-                print row['yearID']
-                print "Home Runs", row["HR"]
-                print "RBI", row["RBI"]
-                print "Runs", row["R"]
-
-    # years = years[1:]
-    # hrs = hrs[1:]
-    # oldYears = years[:]
-    # npyears = np.array(years).astype(np.float)
-    # # hrs = np.array(hrs).astype(np.float)
-    # regr = linear_model.LinearRegression()
-    # print years
-    # print hrs
-    # regr.fit(npyears, hrs)
-
-    # oldYears.append(['2016'])
-    # newYears = np.array(oldYears).astype(np.float)
-    # print regr.predict(newYears)
-    # print regr.coef_
-    # print "done"
+    def BryanWork():
+        args = sys.argv
+        if len(args) == 1:
+            print "call this file with whatever features you want to help predict Mike Trout's HR count for 2016"
+            print """Your options are  
+            - year: yearID 
+            - games: G
+            - at bats: AB
+            - runs: R
+            - hits: H
+            - batting average: H/AB
+            - home runs: HR
+            - RBIs: RBI
+            - SB: SB"""
+            return
+        else:
+            possibleFeatures = set(['yearID','G','AB','R','H','HR','RBI','SB'])
+            for i in args[1:]:
+                if i not in possibleFeatures:
+                    print i + " is not a possible feature. Please try again. To see possible features run python regression.py with no arguments"
+                    return
 
 
+        with open(battingFile) as csvfile:
+            reader = csv.DictReader(csvfile)
+            years = []
+            hrs = []
+            for row in reader:
+                if row['playerID'] == "troutmi01":
+                    curArray = []
+                    for i in args[1:]:
+                        val = float(row[i])
+                        curArray.append(val)
+                    years.append(curArray)
+                    hrs.append(float(row["HR"]))
 
-    # x = [
-    # [1 , 2, 3, 4, 5]
-    # [10,20,35,40,50]
-    # ]
+        regr = linear_model.LinearRegression()
 
-    # y = [0,1]
+        regr.fit(years, hrs)
+        regr.predict(years)
+        coeffs = regr.coef_
+        intercept = regr.intercept_
+        result = intercept
+        lastYearData = years[-1]
+        for i in range(len(coeffs)): # calculate 2016 result
+            if lastYearData[i] != 2015:
+                result = result + coeffs[i] * lastYearData[i]
+            else:
+                result = result + coeffs[i] * 2016.0
+        print "We are expecting mike trout to hit " + str(result) + " HRs based on the provided features"
+        # print coeffs
+        # print intercept
+        # plt.scatter(years, hrs,  color='black')
+        # plt.plot(newYears, regr.predict(newYears), color='blue', linewidth=3)
 
-    # reg = linear_model.LinearRegression()
-    # reg.fit(x,y)
-    # print reg.coef_
+        # plt.xticks(())
+        # plt.yticks(())
 
-    # plt.scatter(years, hrs,  color='black')
-    # plt.plot(newYears, regr.predict(newYears), color='blue', linewidth=3)
+        # plt.show()
+        # print "done"
 
-    # plt.xticks(())
-    # plt.yticks(())
-
-    # plt.show()
-
+    BryanWork()
     # END BRYAN IMPLEMENTATION
 
-=======
->>>>>>> 992e0210ab779c7b2a88f18901b6a697be15074a
     # generate data structure to store all player statistics
     # contains player statistics mapped by (playerID_yearID)
     def generatePlayerMap(filename, map):
@@ -253,7 +256,6 @@ if __name__ == '__main__':
                 map[str(row['playerID'])] = row
 
 
-<<<<<<< HEAD
     # generatePlayerMap(battingFile, batterMap)
     # generatePlayerMap(pitchingFile, pitcherMap)
     # generateIDTable()
@@ -264,19 +266,6 @@ if __name__ == '__main__':
     # averageBattingValues_baseline(newBatterMap)
     # averagePitchingValues_baseline(newPitcherMap)
     # checkAccuracyHitting()
-=======
-    generatePlayerMap(battingFile, batterMap)
-    generatePlayerMap(pitchingFile, pitcherMap)
-    generateIDTable()
-
-    # create averaged values to compare with
-    generateBatterMap(battingFile, newBatterMap)
-    generatePitcherMap(pitchingFile, newPitcherMap)
-    averageBattingValues_baseline(newBatterMap)
-    averagePitchingValues_baseline(newPitcherMap)
-    checkAccuracyHitting()
->>>>>>> 992e0210ab779c7b2a88f18901b6a697be15074a
-
 
 
     # Test cases -------
@@ -335,10 +324,3 @@ if __name__ == '__main__':
 # How do you handle players who haven't played very many years?
 
 
-
-
-<<<<<<< HEAD
-    
-=======
-    
->>>>>>> 992e0210ab779c7b2a88f18901b6a697be15074a
