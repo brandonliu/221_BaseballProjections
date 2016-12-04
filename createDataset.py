@@ -224,7 +224,10 @@ if __name__ == '__main__':
     # Input: A string of a player's name (e.g. Mike Trout)
     # If there are duplicates found, then it will prompt the user for which
     # player they are interested in.
-    def getPlayerInformation(playerName):
+
+    # Normalize flag will add in fake years even if a player didn't play
+    # Raw will return a dict but raw will return only numbers in list form
+    def getPlayerInformation(playerName, normalize = False, raw = False):
         # Get 2016 information
         info2016 = None
         playerCurrent = False
@@ -273,19 +276,22 @@ if __name__ == '__main__':
                         tempData = batterMap[keyID]
                     else:
                         yearsMissing.append(year)
-                for yr in yearsMissing:
-                    player_2010to2015[str(yr)] = tempData
+                if normalize:
+                    for yr in yearsMissing:
+                        player_2010to2015[str(yr)] = tempData
             newList = []
-            print player_2010to2015
-            for i, (d, vals) in enumerate(player_2010to2015.iteritems()):
-                if i == 0:
-                    newList = map(lambda x: float(x) if x != '' else 0, list(vals.values()))
-                else:
-                    newList = map(lambda x: float(x) if x != '' else 0, list(vals.values())) + newList
-                print newList
-                player_2010to2015 = newList
+            print "Pre-mod",  player_2010to2015
+            if raw:
+                for i, (d, vals) in enumerate(player_2010to2015.iteritems()):
+                    if i == 0:
+                        newList = map(lambda x: float(x) if x != '' else 0, list(vals.values()))
+                    else:
+                        newList = map(lambda x: float(x) if x != '' else 0, list(vals.values())) + newList
+                    print newList
+                    player_2010to2015 = newList
         return info2016, playerPitchFxData, player_2010to2015
     
+    print "Demonstrating an example using Mike Trout"
     trout2016, troutPitchFX2015, trout2010to2015 = getPlayerInformation("Mike Trout")
     print trout2016
     print '\n\n'
@@ -293,22 +299,42 @@ if __name__ == '__main__':
     print '\n\n'
     print trout2010to2015
     print '\n\n'
+    # print batterMap[]
+
+
+    # Prints the names of the statistical categories that are tracked by the database
+    def printStatCategories():
+        print "2016 statistics (Y) include: "
+        print trout2016.keys()
+        print
+        print "peripheral statistics are available from 2015 and include: "
+        print troutPitchFX2015.keys()
+        print
+        print "2010 to 2015 statistics used for training include: "
+        for yr in trout2010to2015.keys():
+            print yr, " includes --> ", trout2010to2015[yr].keys()
+
+    # Print all available statistical categories
+    printStatCategories()
+
+
 
     # Create the X dataset for linear regression
     pitcherX = []
     pitcherY = []
     batterX = []
     batterY = []
+    # Example of creating a dataset
     def createTrainSet():
         for player, val in batter_2015_pitchfx.iteritems():
-            player2016, playerFX2015, player2010to2015 = getPlayerInformation(player)
+            player2016, playerFX2015, player2010to2015 = getPlayerInformation(player, True, True)
             if player2016 and playerFX2015 and player2010to2015: # ignore values not present in all categories
                 player2016 = map(lambda x: float(x) if x != '' else 0, list(player2016.values()))
                 batterY.append(player2016)
                 playerFX2015 = map(lambda x: float(x) if x != '' else 0, list(playerFX2015.values()))
                 batterX.append(player2010to2015 + playerFX2015)
         for player, val in pitcher_2015_pitchfx.iteritems(): # ignore values not present in all categories
-            player2016, playerFX2015, player2010to2015 = getPlayerInformation(player)
+            player2016, playerFX2015, player2010to2015 = getPlayerInformation(player, True, True)
             if player2016 and playerFX2015 and player2010to2015:
                 player2016 = map(lambda x: float(x) if x != '' else 0, list(player2016.values()))
                 pitcherY.append(player2016)
@@ -325,12 +351,14 @@ if __name__ == '__main__':
     # from our 2010-2015 data set and if we don't have pitchfx data,
     # we scrape their 2015 pitch fx data from fangraphs
 
-    createTrainSet()
-    regr = linear_model.LinearRegression()
-    regr.fit(batterX, batterY)
-    print regr.coef_
+    # createTrainSet()
+    # regr = linear_model.LinearRegression()
+    # regr.fit(batterX, batterY)
+    # print regr.coef_
     #     regr.predict(years)
     #     coeffs = regr.coef_
     #     intercept = regr.intercept_
     #     result = intercept
     #     lastYearData = years[-1]
+
+    # INSTEAD JUST HAVE THE USER INPUT THEIR OWN PREFERENCES AND WE'LL JUST PULL VALUES FROM OUR DATASETS
