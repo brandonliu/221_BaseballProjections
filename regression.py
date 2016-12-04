@@ -12,7 +12,7 @@ statMap = {
         'R': ['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', 'SB', 'CS', '3B'],
         'RBI': ['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', '3B'],
         'SB': ['AB', 'G', 'H', 'BB', 'HR', 'R', 'SO', 'SB', 'CS'],
-        'H': ['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', '3B'],
+        'H': ['AB', 'G', 'SO', '2B', '3B'],
         'G': ['AB', 'G'],
         'AB': ['AB', 'G'],
         'H/AB': ['AB', 'G', 'H', 'BB', 'SO', '2B', '3B']
@@ -34,26 +34,26 @@ def predict(playerFirstName, playerLastName, target):
         y.append(float(playerData[year][target]))
 
     for feature in features:
-        calculate2016data.append(data2016[feature])
+        calculate2016data.append(float(data2016[feature]))
 
 
     regr = linear_model.LinearRegression()
     regr.fit(x, y)
-    regr.predict(x)
-    weights = regr.coef_
-    intercept = regr.intercept_
-    result = intercept
+    return regr.predict(calculate2016data)[0]
+    # weights = regr.coef_
+    # intercept = regr.intercept_
+    # result = intercept
 
-    for i in range(len(weights)): # calculate 2016 result
-        if calculate2016data[i] != 2015:
-            result = result + weights[i] * float(calculate2016data[i])
-        else:
-            print "SHOULD NOT PRINT"
-            result = result + weights[i] * 2016.0
+    # # for i in range(len(weights)): # calculate 2016 result
+    # #     if calculate2016data[i] != 2015:
+    # #         result = result + weights[i] * float(calculate2016data[i])
+    # #     else:
+    # #         print "SHOULD NOT PRINT"
+    # #         result = result + weights[i] * 2016.0
 
-    if result <= 0:
-        return 0.1
-    return result
+    # if result <= 0:
+    #     return 0.1
+    # return result
 
 if __name__ == '__main__':
 

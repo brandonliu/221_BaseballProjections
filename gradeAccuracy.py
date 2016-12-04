@@ -50,11 +50,13 @@ def accuracyCheck(playerName, statCategory):
 
 accuracyCheck("Mike Trsdout", [])
 
-total = 0.0
+total = []
 for cat in batCats:
     for pName in playerNames:
-        total += accuracyCheck(pName, cat)
-    print cat, "accuracy ", total / len(playerNames)
+        # total += accuracyCheck(pName, cat)
+        total.append(accuracyCheck(pName, cat))
+    # print cat, "accuracy ", total / len(playerNames)
+    print cat, "accuracy", np.median(np.array(total))
 
 
 
