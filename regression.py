@@ -3,9 +3,9 @@ import sys
 import math
 import numpy as np
 from sklearn import linear_model
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import sys
-
+import brandon 
 
 if __name__ == '__main__':
 
@@ -29,8 +29,64 @@ if __name__ == '__main__':
     batterMap = {}
     pitcherMap = {}
     idMap = {}
-
+    print "brandon"
+    tup =  brandon.getPlayerInformation("Mike Trout")
+    print tup[0]
+    print "WOO"
+    print tup[1]
+    print "woo"
+    print tup[2]
     # BEGIN BRYAN IMPLEMENTATION
+    statMap = {
+        'HR': ['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', '3B'],
+        'R': ['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', 'SB', 'CS', '3B'],
+        'RBI': ['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', '3B'],
+        'SB': ['AB', 'G', 'H', 'BB', 'HR', 'R', 'SO', 'SB', 'CS'],
+        'H': ['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', '3B'],
+        'G': ['AB', 'G'],
+        'AB': ['AB', 'G'],
+        'H/AB': ['AB', 'G', 'H', 'BB', 'SO', '2B', '3B']
+    }
+
+    def predict(playerFirstName, playerLastName, target):
+        data = brandon.getPlayerInformation(playerFirstName + " " + playerLastName)
+            possibleFeatures = set(['yearID','G','AB','R','H','HR','RBI','SB'])
+            for i in args[1:]:
+                if i not in possibleFeatures:
+                    print i + " is not a possible feature. Please try again. To see possible features run python regression.py with no arguments"
+                    return
+
+
+        with open(battingFile) as csvfile:
+            reader = csv.DictReader(csvfile)
+            years = []
+            hrs = []
+            for row in reader:
+                if row['playerID'] == "troutmi01":
+                    curArray = []
+                    for i in args[1:]:
+                        val = float(row[i])
+                        curArray.append(val)
+                    years.append(curArray)
+                    hrs.append(float(row["HR"]))
+
+        regr = linear_model.LinearRegression()
+
+        regr.fit(years, hrs)
+        regr.predict(years)
+        coeffs = regr.coef_
+        intercept = regr.intercept_
+        result = intercept
+        lastYearData = years[-1]
+        for i in range(len(coeffs)): # calculate 2016 result
+            if lastYearData[i] != 2015:
+                result = result + coeffs[i] * lastYearData[i]
+            else:
+                result = result + coeffs[i] * 2016.0
+        print "We are expecting mike trout to hit " + str(result) + " HRs based on the provided features"
+
+
+
 
     def BryanWork():
         args = sys.argv
@@ -93,7 +149,8 @@ if __name__ == '__main__':
         # plt.show()
         # print "done"
 
-    BryanWork()
+    # BryanWork()
+    predict(sys.argv[1], sys.argv[2], sys.argv[2])
     # END BRYAN IMPLEMENTATION
 
     # generate data structure to store all player statistics

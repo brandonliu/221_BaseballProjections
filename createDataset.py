@@ -11,12 +11,11 @@ import sys
 import math
 import numpy as np
 from sklearn import linear_model
-import matplotlib.pyplot as plt
 import sys
 import collections
 
-if __name__ == '__main__':
 
+def main():
     # run on csvfile: 'lahman_csv_2015/core/Batting.csv'
     # run on csvfile: 'lahman_csv_2015/core/Master.csv'
 
@@ -362,3 +361,7 @@ if __name__ == '__main__':
     #     lastYearData = years[-1]
 
     # INSTEAD JUST HAVE THE USER INPUT THEIR OWN PREFERENCES AND WE'LL JUST PULL VALUES FROM OUR DATASETS
+
+
+if __name__ == '__main__':
+    main()

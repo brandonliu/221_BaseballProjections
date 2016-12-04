@@ -41,4 +41,4 @@ plt.plot(diabetes_X_test, regr.predict(diabetes_X_test), color='blue',
 plt.xticks(())
 plt.yticks(())
 
-# plt.show()
+plt.show()
