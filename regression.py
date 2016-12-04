@@ -5,7 +5,7 @@ import numpy as np
 from sklearn import linear_model
 # import matplotlib.pyplot as plt
 import sys
-import brandon 
+import dataUtil 
 
 if __name__ == '__main__':
 
@@ -29,13 +29,7 @@ if __name__ == '__main__':
     batterMap = {}
     pitcherMap = {}
     idMap = {}
-    print "brandon"
-    tup =  brandon.getPlayerInformation("Mike Trout")
-    print tup[0]
-    print "WOO"
-    print tup[1]
-    print "woo"
-    print tup[2]
+
     # BEGIN BRYAN IMPLEMENTATION
     statMap = {
         'HR': ['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', '3B'],
@@ -49,12 +43,7 @@ if __name__ == '__main__':
     }
 
     def predict(playerFirstName, playerLastName, target):
-        data = brandon.getPlayerInformation(playerFirstName + " " + playerLastName)
-            possibleFeatures = set(['yearID','G','AB','R','H','HR','RBI','SB'])
-            for i in args[1:]:
-                if i not in possibleFeatures:
-                    print i + " is not a possible feature. Please try again. To see possible features run python regression.py with no arguments"
-                    return
+        playerData = dataUtil.getPlayerInformation(playerFirstName + " " + playerLastName)[2]
 
 
         with open(battingFile) as csvfile:
