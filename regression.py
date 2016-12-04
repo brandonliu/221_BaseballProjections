@@ -43,6 +43,8 @@ if __name__ == '__main__':
     }
 
     def predict(playerFirstName, playerLastName, target):
+        if target not in statMap.keys():
+            print "bad target value"
         playerData = dataUtil.getPlayerInformation(playerFirstName + " " + playerLastName)[2]
 
 
