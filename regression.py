@@ -8,7 +8,7 @@ import sys
 import dataUtil 
 
 statMap = {
-        'HR': ['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', '3B'],
+        'HR': ["RBI"],#['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', '3B'],
         'R': ['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', 'SB', 'CS', '3B'],
         'RBI': ['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', '3B'],
         'SB': ['AB', 'G', 'H', 'BB', 'HR', 'R', 'SO', 'SB', 'CS'],
@@ -21,12 +21,11 @@ statMap = {
 def predict(playerFirstName, playerLastName, target):
     if target not in statMap.keys():
         print "bad target value"
-    playerData = dataUtil.getPlayerInformation(playerFirstName + " " + playerLastName)[2]
+    data2016, null, playerData = dataUtil.getPlayerInformation(playerFirstName + " " + playerLastName)
     features = statMap[target]
-
     x = []
     y = []
-
+    calculate2016data = []
     for year in playerData:
         curArray = []
         for feature in features:
@@ -34,20 +33,26 @@ def predict(playerFirstName, playerLastName, target):
         x.append(curArray)
         y.append(float(playerData[year][target]))
 
+    for feature in features:
+        calculate2016data.append(data2016[feature])
+
 
     regr = linear_model.LinearRegression()
-
     regr.fit(x, y)
     regr.predict(x)
     weights = regr.coef_
     intercept = regr.intercept_
     result = intercept
-    lastYearData = x[-1]
+
     for i in range(len(weights)): # calculate 2016 result
-        if lastYearData[i] != 2015:
-            result = result + weights[i] * lastYearData[i]
+        if calculate2016data[i] != 2015:
+            result = result + weights[i] * float(calculate2016data[i])
         else:
+            print "SHOULD NOT PRINT"
             result = result + weights[i] * 2016.0
+
+    if result <= 0:
+        return 0.1
     return result
 
 if __name__ == '__main__':

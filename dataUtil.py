@@ -140,7 +140,7 @@ def generate2016Data(filename2016, newMap):
         reader = csv.DictReader(csvfile)
         for row in reader:
             name = row['Name']
-            if name[len(name) -1] == '*':
+            if name[len(name) -1] == '*' or name[len(name) -1] == '#':
                 name = name[:len(name)-1]
             if name in newMap:
                 if row['Tm'] != 'TOT':
@@ -209,6 +209,8 @@ for key, val in newPitcherMap.iteritems():
     playerNames.add(pName)
 
 
+dupPlayerMap = {"Jose Reyes": ['reyesjo01']}
+
 # Create the methods to access player data when given a player name
 
 # Input: A string of a player's name (e.g. Mike Trout)
@@ -240,7 +242,10 @@ def getPlayerInformation(playerName, normalize = False, raw = False):
         playerPitchFxData = batter_2015_pitchfx[playerName]
     player_2010to2015 = None
     if playerName in idNamePairs:
-        playerIDInfo = idNamePairs[playerName][0] # Just takes the first player it finds
+        playerIDInfo = idNamePairs[playerName][-1] # Just takes the first player it finds
+        if playerName in dupPlayerMap:
+            playerIDInfo = dupPlayerMap[playerName]
+        # print playerIDInfo
         pid = playerIDInfo[0]
         player_2010to2015 = {}
         if not batter:
