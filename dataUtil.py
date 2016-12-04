@@ -209,7 +209,7 @@ for key, val in newPitcherMap.iteritems():
     playerNames.add(pName)
 
 
-dupPlayerMap = {"Jose Reyes": ['reyesjo01']}
+dupPlayerMap = {"Jose Reyes": ['reyesjo01'], "Chris Young": ['youngch03']}
 
 # Create the methods to access player data when given a player name
 

@@ -5,9 +5,11 @@ import numpy as np
 from sklearn import linear_model
 # import matplotlib.pyplot as plt
 import sys
-import dataUtil 
+import dataUtil
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning) 
 
-statMap = {
+batStatMap = {
         'HR': ["RBI"],#['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', '3B'],
         'R': ['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', 'SB', 'CS', '3B'],
         'RBI': ['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', '3B'],
@@ -15,10 +17,31 @@ statMap = {
         'H': ['AB', 'G', 'SO', '2B', '3B'],
         'G': ['AB', 'G'],
         'AB': ['AB', 'G'],
-        'H/AB': ['AB', 'G', 'H', 'BB', 'SO', '2B', '3B']
+        'H/AB': ['AB', 'G', 'H', 'BB', 'SO', '2B', '3B'],
+
+
+
     }
+
+pitchStatMap = {
+        'W': ['W','L','G','GS','IPouts','H', 'R','HR','BB','SO','BAOpp','ERA'],
+        'L': ['W','L','G','GS','IPouts','H','R','HR','BB','SO','BAOpp','ERA'],
+        'G': ['W','L','G','GS','IPouts'],
+        'GS': ['G','GS'],
+        'SV': ['W','L','G','GS','CG','SHO','SV','IPouts','H','ER','HR','BB','SO','BAOpp','ERA','R'],
+        'IP': ['W','L','G','GS','CG','SHO','SV','IPouts','H','ER','HR','BB','SO','BAOpp','ERA','R'],
+        'H': ['W','L','G','GS','CG','SHO','SV','IPouts','H','ER','HR','BB','SO','BAOpp','ERA','R'],
+        'ER': ['IPouts','H','ER','HR','BB','SO','BAOpp','ERA','R'],
+        'HR': ['HR'],
+        'BB': ['BB', 'H'],
+        'SO': ['IPouts','SO','BAOpp','ERA','R'],
+        'ERA': ['W','L','IPouts','H','ER','HR','BB','SO','BAOpp','ERA','R']
+}
     
-def predict(playerFirstName, playerLastName, target):
+def predict(playerFirstName, playerLastName, target, batter = False):
+    statMap = pitchStatMap
+    if batter:
+        statMap = batStatMap
     if target not in statMap.keys():
         print "bad target value"
     data2016, null, playerData = dataUtil.getPlayerInformation(playerFirstName + " " + playerLastName)
@@ -55,6 +78,41 @@ def predict(playerFirstName, playerLastName, target):
     #     return 0.1
     # return result
 
+
+def nextYearPredict(playerFirstName, playerLastName, target, batter = False):
+    statMap = pitchStatMap
+    if batter:
+        statMap = batStatMap
+    if target not in statMap.keys():
+        print "bad target value"
+    data2016, null, playerData = dataUtil.getPlayerInformation(playerFirstName + " " + playerLastName)
+    features = statMap[target]
+    x = []
+    y = []
+    calculate2015data = []
+    # print playerFirstName, playerLastName, playerData
+    if not playerData or '2015' not in playerData:
+        return None
+    for i, year in enumerate(playerData):
+        if year == '2015':
+            continue
+        curArray = []
+        if not playerData.get(str(int(year) + 1), 0):
+            continue
+        for feature in features:
+            curArray.append(float(playerData[year][feature]))
+        x.append(curArray)
+        y.append(float(playerData[str(int(year) + 1)][target]))
+
+    for feature in features:
+        calculate2015data.append(float(playerData['2015'][feature]))
+    if not x or not y:
+        return None
+    regr = linear_model.LinearRegression()
+    regr.fit(x, y)
+    return regr.predict(calculate2015data)[0] 
+
+
 if __name__ == '__main__':
 
     # run on csvfile: 'lahman_csv_2015/core/Batting.csv'
@@ -80,7 +138,7 @@ if __name__ == '__main__':
 
     # BEGIN BRYAN IMPLEMENTATION
 
-    print predict(sys.argv[1], sys.argv[2], sys.argv[3])
+    print nextYearPredict(sys.argv[1], sys.argv[2], sys.argv[3], True)
 
     def BryanWork():
         args = sys.argv
