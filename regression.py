@@ -7,6 +7,49 @@ from sklearn import linear_model
 import sys
 import dataUtil 
 
+statMap = {
+        'HR': ['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', '3B'],
+        'R': ['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', 'SB', 'CS', '3B'],
+        'RBI': ['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', '3B'],
+        'SB': ['AB', 'G', 'H', 'BB', 'HR', 'R', 'SO', 'SB', 'CS'],
+        'H': ['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', '3B'],
+        'G': ['AB', 'G'],
+        'AB': ['AB', 'G'],
+        'H/AB': ['AB', 'G', 'H', 'BB', 'SO', '2B', '3B']
+    }
+    
+def predict(playerFirstName, playerLastName, target):
+    if target not in statMap.keys():
+        print "bad target value"
+    playerData = dataUtil.getPlayerInformation(playerFirstName + " " + playerLastName)[2]
+    features = statMap[target]
+
+    x = []
+    y = []
+
+    for year in playerData:
+        curArray = []
+        for feature in features:
+            curArray.append(float(playerData[year][feature]))
+        x.append(curArray)
+        y.append(float(playerData[year][target]))
+
+
+    regr = linear_model.LinearRegression()
+
+    regr.fit(x, y)
+    regr.predict(x)
+    weights = regr.coef_
+    intercept = regr.intercept_
+    result = intercept
+    lastYearData = x[-1]
+    for i in range(len(weights)): # calculate 2016 result
+        if lastYearData[i] != 2015:
+            result = result + weights[i] * lastYearData[i]
+        else:
+            result = result + weights[i] * 2016.0
+    return result
+
 if __name__ == '__main__':
 
     # run on csvfile: 'lahman_csv_2015/core/Batting.csv'
@@ -31,53 +74,8 @@ if __name__ == '__main__':
     idMap = {}
 
     # BEGIN BRYAN IMPLEMENTATION
-    statMap = {
-        'HR': ['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', '3B'],
-        'R': ['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', 'SB', 'CS', '3B'],
-        'RBI': ['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', '3B'],
-        'SB': ['AB', 'G', 'H', 'BB', 'HR', 'R', 'SO', 'SB', 'CS'],
-        'H': ['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', '3B'],
-        'G': ['AB', 'G'],
-        'AB': ['AB', 'G'],
-        'H/AB': ['AB', 'G', 'H', 'BB', 'SO', '2B', '3B']
-    }
 
-    def predict(playerFirstName, playerLastName, target):
-        if target not in statMap.keys():
-            print "bad target value"
-        playerData = dataUtil.getPlayerInformation(playerFirstName + " " + playerLastName)[2]
-
-
-        with open(battingFile) as csvfile:
-            reader = csv.DictReader(csvfile)
-            years = []
-            hrs = []
-            for row in reader:
-                if row['playerID'] == "troutmi01":
-                    curArray = []
-                    for i in args[1:]:
-                        val = float(row[i])
-                        curArray.append(val)
-                    years.append(curArray)
-                    hrs.append(float(row["HR"]))
-
-        regr = linear_model.LinearRegression()
-
-        regr.fit(years, hrs)
-        regr.predict(years)
-        coeffs = regr.coef_
-        intercept = regr.intercept_
-        result = intercept
-        lastYearData = years[-1]
-        for i in range(len(coeffs)): # calculate 2016 result
-            if lastYearData[i] != 2015:
-                result = result + coeffs[i] * lastYearData[i]
-            else:
-                result = result + coeffs[i] * 2016.0
-        print "We are expecting mike trout to hit " + str(result) + " HRs based on the provided features"
-
-
-
+    print predict(sys.argv[1], sys.argv[2], sys.argv[3])
 
     def BryanWork():
         args = sys.argv
@@ -141,7 +139,6 @@ if __name__ == '__main__':
         # print "done"
 
     # BryanWork()
-    predict(sys.argv[1], sys.argv[2], sys.argv[2])
     # END BRYAN IMPLEMENTATION
 
     # generate data structure to store all player statistics
