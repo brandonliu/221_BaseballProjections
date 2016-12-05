@@ -34,7 +34,7 @@ pitchCats = ['W', 'L', 'ERA', 'H', 'BB', 'SO']
 pitchPredictions = {}
 
 
-
+invalidPlayers = set()
 
 
 
@@ -54,8 +54,9 @@ def generatePredictions(bat = False):
                 continue
             # print nameSplit
             # y = regression.predict(nameSplit[0], nameSplit[1], cat)
-            y = regression.nextYearPredict(nameSplit[0], nameSplit[1], cat, bat)
+            y = regression.SVRPredict(nameSplit[0], nameSplit[1], cat, bat)
             if not y:
+                invalidPlayers.add(pName)
                 playerNames[i] = "INVALID"
                 continue
 

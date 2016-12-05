@@ -12,7 +12,7 @@ import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
 
 batStatMap = {
-        'HR': ["RBI"],#['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', '3B'],
+        'HR': ["RBI", "H", "G"],#['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', '3B'],
         'R': ['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', 'SB', 'CS', '3B'],
         'RBI': ['AB', 'RBI', 'G', 'H', 'BB', 'HR', 'R', 'SO', '2B', '3B'],
         'SB': ['AB', 'G', 'H', 'BB', 'HR', 'R', 'SO', 'SB', 'CS'],
@@ -179,7 +179,19 @@ def nextYearPredict(playerFirstName, playerLastName, target, batter = False):
         return None
     regr = linear_model.LinearRegression()
     regr.fit(x, y)
-    return regr.predict(calculate2015data)[0] 
+    prediction = regr.predict(calculate2015data)
+    if playerFirstName == 'Nolan' or prediction[0] < 0:
+        print playerFirstName + " " + playerLastName, target
+        print regr.coef_
+        print features
+        print x
+        print y
+        print calculate2015data
+        print prediction
+    val = prediction[0]
+    if val <= 0:
+        return 0.1
+    return val
 
 
 if __name__ == '__main__':
