@@ -12,7 +12,6 @@ import copy
 validationSet_2016_bat = dataUtil.bbref_2016_batters
 validationSet_2016_pitch = dataUtil.bbref_2016_pitchers
 
-playerNames = dataUtil.batter_2015_pitchfx.keys()
 # remove players who have invalid data or missing data
 
 # print playerNames
@@ -28,97 +27,211 @@ batPredictions = {}
 
 batCats = ['HR', 'R', 'RBI', 'SB', 'H', 'G', 'AB']
 
-
-temp = []
-for cat in batCats:
-    batPredictions[cat] = {}
-    for i, pName in enumerate(playerNames):
-        nameSplit = pName.split(' ')
-        if pName == "INVALID":
-            continue
-        # print nameSplit
-        # y = regression.predict(nameSplit[0], nameSplit[1], cat)
-        y = regression.nextYearPredict(nameSplit[0], nameSplit[1], cat, True)
-        if not y:
-            playerNames[i] = "INVALID"
-            continue
-
-        # print y
-        batPredictions[cat][pName] = y
-
-
-def accuracyCheck(playerName, statCategory):
-    testStats = None
-    if validationSet_2016_bat.get(playerName, 0):
-        yVal = batPredictions[statCategory][playerName]
-        percentDiff = abs(float(validationSet_2016_bat[playerName][statCategory]) - yVal + 1)/(yVal + 1)
-        # print playerName, " ", statCategory, " Actual: ", validationSet_2016_bat[playerName][statCategory], "Predicted: ", yVal
-        return percentDiff
-            
-
-    return 0.0 # Couldn't find player in 2016 data    
-    
-
-accuracyCheck("Mike Trsdout", [])
-
-total = []
-for cat in batCats:
-    for pName in playerNames:
-        if pName == "INVALID":
-            continue
-        # total += accuracyCheck(pName, cat)
-        total.append(accuracyCheck(pName, cat))
-    # print cat, "accuracy ", total / len(playerNames)
-    print cat, "accuracy", np.median(np.array(total))
-
-
-# PITCHING CATEGORIES
-
+batterNames = dataUtil.batter_2015_pitchfx.keys()
 pitcherNames = dataUtil.pitcher_2015_pitchfx.keys()
 
 pitchCats = ['W', 'L', 'ERA', 'H', 'BB', 'SO']
 pitchPredictions = {}
 
 
-for cat in pitchCats:
-    pitchPredictions[cat] = {}
-    for i, pName in enumerate(pitcherNames):
-        nameSplit = pName.split(' ')
-        if pName == "INVALID":
-            continue
-        # y = regression.predict(nameSplit[0], nameSplit[1], cat)
-        y = regression.nextYearPredict(nameSplit[0], nameSplit[1], cat)
-        if not y:
-            pitcherNames[i] = "INVALID"
-            continue
 
 
-        pitchPredictions[cat][pName] = y
 
 
-def accuracyCheck(playerName, statCategory):
-    testStats = None
-    if validationSet_2016_pitch.get(playerName, 0):
-        yVal = pitchPredictions[statCategory][playerName]
-        percentDiff = abs(float(validationSet_2016_pitch[playerName][statCategory]) - yVal + 1)/(yVal + 1)
+def generatePredictions(bat = False):
+    categories = pitchCats
+    predDict = pitchPredictions
+    playerNames = pitcherNames
+    if bat:
+        predDict = batPredictions
+        categories = batCats
+        playerNames = batterNames
+    for cat in categories:
+        predDict[cat] = {}
+        for i, pName in enumerate(playerNames):
+            nameSplit = pName.split(' ')
+            if pName == "INVALID":
+                continue
+            # print nameSplit
+            # y = regression.predict(nameSplit[0], nameSplit[1], cat)
+            y = regression.nextYearPredict(nameSplit[0], nameSplit[1], cat, bat)
+            if not y:
+                playerNames[i] = "INVALID"
+                continue
+
+            # print y
+            if pName == "Evan Gattis":
+                print pName, y
+            predDict[cat][pName] = y
+
+
+
+
+###### PRE_DECOMPOSITION CODE
+
+
+
+
+# temp = []
+# for cat in batCats:
+#     batPredictions[cat] = {}
+#     for i, pName in enumerate(playerNames):
+#         nameSplit = pName.split(' ')
+#         if pName == "INVALID":
+#             continue
+#         # print nameSplit
+#         # y = regression.predict(nameSplit[0], nameSplit[1], cat)
+#         y = regression.nextYearPredict(nameSplit[0], nameSplit[1], cat, True)
+#         if not y:
+#             playerNames[i] = "INVALID"
+#             continue
+
+#         # print y
+#         batPredictions[cat][pName] = y
+
+
+
+def accuracyCheck(playerName, statCategory, bat = False):
+    validationSet = validationSet_2016_pitch
+    predictions = pitchPredictions
+    if bat:
+        validationSet = validationSet_2016_bat
+        predictions = batPredictions
+    if validationSet.get(playerName, 0):
+        yVal = predictions[statCategory][playerName]
+        percentDiff = abs(float(validationSet[playerName][statCategory]) - yVal + 1)/(yVal + 1)
         # print playerName, " ", statCategory, " Actual: ", validationSet_2016_bat[playerName][statCategory], "Predicted: ", yVal
         return percentDiff
             
 
     return 0.0 # Couldn't find player in 2016 data    
     
+def diffCheck(playerName, statCategory, bat = False):
+    validationSet = validationSet_2016_pitch
+    predictions = pitchPredictions
+    if bat:
+        validationSet = validationSet_2016_bat
+        predictions = batPredictions
+    if validationSet.get(playerName, 0):
+        yVal = predictions[statCategory][playerName]
+        diff = float(validationSet[playerName][statCategory]) - yVal
+        # print playerName, " ", statCategory, " Actual: ", validationSet_2016_bat[playerName][statCategory], "Predicted: ", yVal
+        return diff
+            
+
+    return 0.0 # Couldn't find player in 2016 data  
+
 
 accuracyCheck("Mike Trsdout", [])
 
-total = []
-for cat in pitchCats:
-    for pName in pitcherNames:
-        if pName == "INVALID":
-            continue
-        # total += accuracyCheck(pName, cat)
-        total.append(accuracyCheck(pName, cat))
-    # print cat, "accuracy ", total / len(pitcherNames)
-    print cat, "accuracy", np.median(np.array(total))
+batDiff = {}
+pitchDiff = {}
+batPercDiff = []
+pitchPercDiff = []
+
+def compare(bat = False):
+    hitterOrBatter = "pitcher" if not bat else "batter"
+    categories = pitchCats
+    names = pitcherNames
+    diff = pitchDiff
+    percDiff = pitchPercDiff
+    predictions = pitchPredictions
+    if bat:
+        categories = batCats
+        names = batterNames
+        diff = batDiff
+        percDiff = batPercDiff
+    for cat in categories:
+        diff[cat] = {}
+        for name in names:
+            if name == "INVALID":
+                continue
+            diff[cat][name] = diffCheck(name, cat, bat)
+            percDiff.append(accuracyCheck(name, cat, bat))
+        print cat, " ", hitterOrBatter, " accuracy-median: ", np.median(np.array(percDiff))
+        print cat, " ", hitterOrBatter, " accuracy-mean: ", np.mean(np.array(percDiff))        
+
+# Generate predictions for pitcher stats and hitter stats
+generatePredictions(bat = True)
+generatePredictions(bat = False)
+
+# Compare predictions for pitcher stats and hitter stats
+compare(bat = True)
+compare(bat = False)
+
+# batDiff = {}
+# totalPercDiff = []
+# for cat in batCats:
+#     batDiff[cat] = {}
+#     for pName in batterNames:
+#         if pName == "INVALID":
+#             continue
+#         # total += accuracyCheck(pName, cat)
+#         batDiff[cat][pName] = diffCheck(pName, cat, True)
+#         totalPercDiff.append(accuracyCheck(pName, cat, True))
+#     # print cat, "accuracy ", total / len(playerNames)
+#     print cat, " accuracy-median: ", np.median(np.array(totalPercDiff))
+#     print cat, " accuracy-mean: ", np.mean(np.array(totalPercDiff))
+
+
+
+# PITCHING CATEGORIES
+
+
+
+# for cat in pitchCats:
+#     pitchPredictions[cat] = {}
+#     for i, pName in enumerate(pitcherNames):
+#         nameSplit = pName.split(' ')
+#         if pName == "INVALID":
+#             continue
+#         # y = regression.predict(nameSplit[0], nameSplit[1], cat)
+#         y = regression.nextYearPredict(nameSplit[0], nameSplit[1], cat)
+#         if not y:
+#             pitcherNames[i] = "INVALID"
+#             continue
+
+
+#         pitchPredictions[cat][pName] = y
+
+
+# def accuracyCheck(playerName, statCategory):
+#     testStats = None
+#     if validationSet_2016_pitch.get(playerName, 0):
+#         yVal = pitchPredictions[statCategory][playerName]
+#         percentDiff = abs(float(validationSet_2016_pitch[playerName][statCategory]) - yVal + 1)/(yVal + 1)
+#         # print playerName, " ", statCategory, " Actual: ", validationSet_2016_bat[playerName][statCategory], "Predicted: ", yVal
+#         return percentDiff
+            
+
+#     return 0.0 # Couldn't find player in 2016 data    
+    
+# def diffCheck(playerName, statCategory):
+#     testStats = None
+#     if validationSet_2016_pitch.get(playerName, 0):
+#         yVal = pitchPredictions[statCategory][playerName]
+#         diff = float(validationSet_2016_pitch[playerName][statCategory]) - yVal
+#         # print playerName, " ", statCategory, " Actual: ", validationSet_2016_bat[playerName][statCategory], "Predicted: ", yVal
+#         return diff
+            
+
+#     return 0.0 # Couldn't find player in 2016 data  
+
+
+# accuracyCheck("Mike Trsdout", [])
+
+# pitchDiff = {}
+# totalPercDiff = []
+# for cat in pitchCats:
+#     pitchDiff[cat] = {}
+#     for pName in pitcherNames:
+#         if pName == "INVALID":
+#             continue
+#         pitchDiff[cat][pName] = diffCheck(pName, cat)
+#         totalPercDiff.append(accuracyCheck(pName, cat))
+#     # print cat, "accuracy ", total / len(pitcherNames)
+#     print cat, " accuracy-median: ", np.median(np.array(totalPercDiff))
+#     print cat, " accuracy-mean: ", np.mean(np.array(totalPercDiff))
 
 
 
