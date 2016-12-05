@@ -3,6 +3,8 @@ import sys
 import math
 import numpy as np
 from sklearn import linear_model
+from sklearn.svm import SVR
+from sklearn.neural_network import MLPRegressor 
 # import matplotlib.pyplot as plt
 import sys
 import dataUtil
@@ -78,6 +80,73 @@ def predict(playerFirstName, playerLastName, target, batter = False):
     #     return 0.1
     # return result
 
+
+def MLPRegressorPredict(playerFirstName, playerLastName, target, batter = False, solver='lbfgs'):
+    statMap = pitchStatMap
+    if batter:
+        statMap = batStatMap
+    if target not in statMap.keys():
+        print "bad target value"
+    data2016, null, playerData = dataUtil.getPlayerInformation(playerFirstName + " " + playerLastName)
+    features = statMap[target]
+    x = []
+    y = []
+    calculate2015data = []
+    # print playerFirstName, playerLastName, playerData
+    if not playerData or '2015' not in playerData:
+        return None
+    for i, year in enumerate(playerData):
+        if year == '2015':
+            continue
+        curArray = []
+        if not playerData.get(str(int(year) + 1), 0):
+            continue
+        for feature in features:
+            curArray.append(float(playerData[year][feature]))
+        x.append(curArray)
+        y.append(float(playerData[str(int(year) + 1)][target]))
+
+    for feature in features:
+        calculate2015data.append(float(playerData['2015'][feature]))
+    if not x or not y:
+        return None
+    regr = MLPRegressor(hidden_layer_sizes=(1000,),solver=solver)
+    regr.fit(x, y)
+    return regr.predict(calculate2015data)[0] 
+
+
+def SVRPredict(playerFirstName, playerLastName, target, batter = False, kernel='rbf', C=1.0, epsilon=0.1):
+    statMap = pitchStatMap
+    if batter:
+        statMap = batStatMap
+    if target not in statMap.keys():
+        print "bad target value"
+    data2016, null, playerData = dataUtil.getPlayerInformation(playerFirstName + " " + playerLastName)
+    features = statMap[target]
+    x = []
+    y = []
+    calculate2015data = []
+    # print playerFirstName, playerLastName, playerData
+    if not playerData or '2015' not in playerData:
+        return None
+    for i, year in enumerate(playerData):
+        if year == '2015':
+            continue
+        curArray = []
+        if not playerData.get(str(int(year) + 1), 0):
+            continue
+        for feature in features:
+            curArray.append(float(playerData[year][feature]))
+        x.append(curArray)
+        y.append(float(playerData[str(int(year) + 1)][target]))
+
+    for feature in features:
+        calculate2015data.append(float(playerData['2015'][feature]))
+    if not x or not y:
+        return None
+    regr = SVR(kernel=kernel, C=C, epsilon=epsilon)
+    regr.fit(x, y)
+    return regr.predict(calculate2015data)[0] 
 
 def nextYearPredict(playerFirstName, playerLastName, target, batter = False):
     statMap = pitchStatMap
