@@ -115,14 +115,17 @@ def MLPRegressorPredict(playerFirstName, playerLastName, target, batter = False,
     return regr.predict(calculate2015data)[0] 
 
 
-def SVRPredict(playerFirstName, playerLastName, target, batter = False, kernel='rbf', C=1.0, epsilon=0.1):
+def SVRPredict(playerFirstName, playerLastName, target, batter = False, kernel='rbf', C=1.0, epsilon=0.1, myFeatures=None):
     statMap = pitchStatMap
     if batter:
         statMap = batStatMap
     if target not in statMap.keys():
         print "bad target value"
     data2016, null, playerData = dataUtil.getPlayerInformation(playerFirstName + " " + playerLastName)
-    features = statMap[target]
+    if myFeatures == None:
+        features = statMap[target]
+    else:
+        features = myFeatures
     x = []
     y = []
     calculate2015data = []

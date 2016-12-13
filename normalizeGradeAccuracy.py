@@ -4,7 +4,7 @@ import numpy as np
 from sklearn import linear_model
 import collections
 import dataUtil
-import regression
+import normalizeRegression
 import copy
 
 
@@ -55,7 +55,7 @@ def generatePredictions(bat = False, features=None):
                 continue
             # print nameSplit
             # y = regression.predict(nameSplit[0], nameSplit[1], cat)
-            y = regression.MLPRegressorPredict(nameSplit[0], nameSplit[1], cat, bat)
+            y = normalizeRegression.MLPRegressorPredict(nameSplit[0], nameSplit[1], cat, bat)
             if not y:
                 invalidPlayers.add(pName)
                 playerNames[i] = "INVALID"
@@ -99,7 +99,11 @@ def accuracyCheck(playerName, statCategory, bat = False):
         predictions = batPredictions
     if validationSet.get(playerName, 0):
         yVal = predictions[statCategory][playerName]
-        percentDiff = abs(float(validationSet[playerName][statCategory]) - yVal + 1)/(yVal + 1)
+        actualValue = float(validationSet[playerName][statCategory])
+        gamesPlayed = float(validationSet[playerName]['G'])
+        scaleFactor = gamesPlayed/160.0
+        yVal = yVal * scaleFactor
+        percentDiff = abs(actualValue - yVal + 1)/(actualValue + 1)
         # print playerName, " ", statCategory, " Actual: ", validationSet_2016_bat[playerName][statCategory], "Predicted: ", yVal
         return percentDiff
             
@@ -114,9 +118,13 @@ def diffCheck(playerName, statCategory, bat = False):
         predictions = batPredictions
     if validationSet.get(playerName, 0):
         yVal = predictions[statCategory][playerName]
-        diff = float(validationSet[playerName][statCategory]) - yVal
+        actualValue = float(validationSet[playerName][statCategory])
+        gamesPlayed = float(validationSet[playerName]['G'])
+        scaleFactor = gamesPlayed/160.0
+        yVal = yVal * scaleFactor
+        diff = abs(actualValue - yVal)
         # print playerName, " ", statCategory, " Actual: ", validationSet_2016_bat[playerName][statCategory], "Predicted: ", yVal
-        return abs(diff)
+        return diff
             
 
     return 0.0 # Couldn't find player in 2016 data  

@@ -88,17 +88,26 @@ def MLPRegressorPredict(playerFirstName, playerLastName, target, batter = False,
         if not playerData.get(str(int(year) + 1), 0):
             continue
         for feature in features:
-            curArray.append(float(playerData[year][feature]))
+            if feature == "G":
+                indexOfG = features.index(feature)
+            if float(playerData[year][feature]) == 0:
+                print " got a 0 value !!!"
+                curArray.append(float(playerData[year][feature])+1)
+            else:
+                curArray.append(float(playerData[year][feature]))
+        curArray = normalize(curArray, indexOfG)
         x.append(curArray)
         y.append(float(playerData[str(int(year) + 1)][target]))
 
     for feature in features:
+        if feature == "G":
+            index = features.index(feature)
         calculate2015data.append(float(playerData['2015'][feature]))
     if not x or not y:
         return None
     regr = MLPRegressor(hidden_layer_sizes=(1000,),solver=solver)
     regr.fit(x, y)
-    return regr.predict(calculate2015data)[0] 
+    return regr.predict(normalize(calculate2015data,index))[0] 
 
 
 def SVRPredict(playerFirstName, playerLastName, target, batter = False, kernel='rbf', C=1.0, epsilon=0.1, myFeatures=None):
@@ -125,23 +134,32 @@ def SVRPredict(playerFirstName, playerLastName, target, batter = False, kernel='
         if not playerData.get(str(int(year) + 1), 0):
             continue
         for feature in features:
-            curArray.append(float(playerData[year][feature]))
+            if feature == "G":
+                indexOfG = features.index(feature)
+            if float(playerData[year][feature]) == 0:
+                curArray.append(float(playerData[year][feature])+1)
+            else:
+                curArray.append(float(playerData[year][feature]))
+        curArray = normalize(curArray, indexOfG)
         x.append(curArray)
         y.append(float(playerData[str(int(year) + 1)][target]))
 
     for feature in features:
+        if feature == "G":
+            index = features.index(feature)
         calculate2015data.append(float(playerData['2015'][feature]))
     if not x or not y:
         return None
     regr = SVR(kernel=kernel, C=C, epsilon=epsilon)
     regr.fit(x, y)
-    return regr.predict(calculate2015data)[0] 
+    # print "made it here"
+    return regr.predict(normalize(calculate2015data,index))[0] 
 
 
 def normalize(array,index):
-    # assume index is not -1
-    if index == -1:
-        print "INDEX IS -1 WHAT IS HAPPENING"
+    # assume index is not None
+    if index == None:
+        print "INDEX IS NONE WHAT IS HAPPENING"
         return None
     games = float(array[index])
     if games == 0:
@@ -152,6 +170,21 @@ def normalize(array,index):
     for a in array:
         result.append(a * scaleFactor)
     return result
+
+def normalizeAndScale(array,index):
+    # assume index is not None
+    if index == None:
+        print "INDEX IS NONE WHAT IS HAPPENING"
+        return None
+    games = float(array[index])
+    if games == 0:
+        print "NO GAMES OMG WHAT IS OGING ON"
+        return None
+    scaleFactor = 160.0/games
+    result = []
+    for a in array:
+        result.append(a * scaleFactor)
+    return (result, scaleFactor)
 
 
 def nextYearPredict(playerFirstName, playerLastName, target, batter = False):
@@ -173,11 +206,13 @@ def nextYearPredict(playerFirstName, playerLastName, target, batter = False):
         curArray = []
         if not playerData.get(str(int(year) + 1), 0):
             continue
-        indexOfG = -1
         for feature in features:
             if feature == "G":
                 indexOfG = features.index(feature)
-            curArray.append(float(playerData[year][feature]))
+            if float(playerData[year][feature]) == 0:
+                curArray.append(float(playerData[year][feature])+1)
+            else:
+                curArray.append(float(playerData[year][feature]))
         curArray = normalize(curArray, indexOfG)
         if curArray == None:
             print playerFirstName, playerLastName, target, features
@@ -190,8 +225,6 @@ def nextYearPredict(playerFirstName, playerLastName, target, batter = False):
             games = float(playerData['2015'][feature])
             index = features.index(feature)
         calculate2015data.append(float(playerData['2015'][feature]))
-    print index
-    print games
     if not x or not y:
         return None
     regr = linear_model.LinearRegression()
